@@ -12,11 +12,11 @@ python /path/to/prof_tools/tools/install_skills.py --project /path/to/target --c
 # or: --client claude [--with-agents]
 ```
 
-The installer copies only `skills/prof-tools/` and its references; five specialist agent templates are optional. Remove previous installs of the older multiple skills yourself if you had installed an earlier version. The distributed Python package exposes only the `prof-tools` command.
+The installer copies the `/optimize` skill and its references; five specialist agent templates are optional. The distributed Python package exposes only the `prof-tools` command.
 
 ## Start from an ordinary request (no JSON to prepare)
 
-With the `prof-tools` skill installed, ask your coding agent, for example:
+With the `/optimize` skill installed, ask your coding agent, for example:
 
 > Optimize representative training-step throughput in this repository, preserving numerical, gradient and distributed semantics. Treat memory as a secondary metric unless capacity is binding. Use Labcoat for experiments and deliver one clean, independently validated final diff.
 
@@ -24,7 +24,7 @@ With the `prof-tools` skill installed, ask your coding agent, for example:
 
 If the agent cannot establish a required scientific tolerance, trusted oracle, production workload distribution, or operational requirement from the repository, it must disclose the uncertainty and ask for that missing decision, rather than silently guessing. A provisional suite can support exploration, but cannot be presented as validated production coverage.
 
-See [`skills/prof-tools/references/contract-authoring.md`](skills/prof-tools/references/contract-authoring.md) for the agent's exact authoring/validation procedure and protocol examples.
+See [`skills/optimize/references/contract-authoring.md`](skills/optimize/references/contract-authoring.md) for the agent's exact authoring/validation procedure and protocol examples.
 
 ## Commands
 
@@ -32,6 +32,7 @@ See [`skills/prof-tools/references/contract-authoring.md`](skills/prof-tools/ref
 |---|---|
 | `prof-tools diagnose` | Machine-readable CPU/GPU activity, counter, PyTorch and distributed trace diagnosis |
 | `prof-tools campaign start` | Opportunity screening, independent campaign Git repository, Labcoat notes repository and worktree preparation |
+| `prof-tools campaign run` | Bounded, foreground, resumable campaign with one Codex worker at a time |
 | `prof-tools evaluate` | Independent correctness, weighted unprofiled A/B benchmarking, resource guardrails and assessment |
 | `prof-tools finalize` | Original-base-to-final semantic review and exact-commit verification |
 | `prof-tools inspect` | Advanced read-only schema, events, SKU and environment information |
@@ -69,7 +70,9 @@ prof-tools campaign start \
 
 `--labcoat-repo` is optional; the default is an external sibling named `<preparation-name>-labcoat`. Reuse one persistent external Labcoat repository across campaigns when possible. The campaign directory contains its own independent bare Git repository and linked experiment worktrees. Workers have `notes` symlinks into the Labcoat repository; the links are Git-excluded in the campaign and never added to the original source repository.
 
-Requires a clean **preparation** Git repository. It produces candidate hypotheses, stable experiment IDs, and independent worktree briefs, but **does not spawn agents or create Labcoat notes**. Each worker follows Labcoat's own preregistration and concurrency instructions; the coordinator allocates effort and backtracks when a path plateaus. The report is an output artifact, not a mutable campaign database. **Retain the campaign Git directory and external Labcoat notes repository:** Labcoat code snapshots reference experimental commit hashes that would become unrecoverable if the campaign object store were deleted.
+After `campaign start`, use `prof-tools campaign run --campaign campaign.json --objective "..." --time-budget-minutes 120 --max-evaluations 8`. One evaluation is reserved for final integration; `--reserve-minutes` defaults to 15. The run stays in the foreground, writes resumable state into the campaign directory, and can be continued with `--resume`. `prof-tools evaluate` consumes candidate slots during exploration. Use `--phase final` only after the run reports `ready_for_final_review`; the controller does not perform final integration or design review.
+
+`campaign start` requires a clean **preparation** Git repository. It prepares candidate hypotheses, stable experiment IDs and isolated worktrees; `campaign run` then dispatches one Codex worker at a time. Workers follow Labcoat preregistration, and Labcoat retains the experiment history. Campaign state and evaluation reservations live beside the isolated campaign Git repository. **Retain both the campaign Git directory and external Labcoat notes repository:** Labcoat snapshots reference experimental commit hashes that become unrecoverable if the campaign object store is deleted.
 
 ### Evaluate a candidate
 
@@ -80,7 +83,7 @@ prof-tools evaluate --outdir /tmp/evaluation-001
 # Existing projects with another committed contract may explicitly pass --spec <path>.
 ```
 
-`evaluation.json` is the canonical machine-readable decision artifact and includes the underlying verification report, performance results, assessment and code revision. Logs and per-case measurement files remain supporting artifacts. If correctness fails, benchmark acceptance is blocked; if performance is inconclusive, no speedup is claimed. The contract itself must include any additional gradient, safety, numerical or distributed checks appropriate to the application; automatic output comparison is not a proof of program equivalence. See `skills/prof-tools/references/verification.md`.
+`evaluation.json` is the canonical machine-readable decision artifact and includes the underlying verification report, performance results, assessment and code revision. Logs and per-case measurement files remain supporting artifacts. If correctness fails, benchmark acceptance is blocked; if performance is inconclusive, no speedup is claimed. The contract itself must include any additional gradient, safety, numerical or distributed checks appropriate to the application; automatic output comparison is not a proof of program equivalence. See `skills/optimize/references/verification.md`.
 
 An exploratory microbenchmark may call `prof_tools.benchmark.run_trials` directly; it is not an application-level `evaluate` result and cannot pass `finalize`.
 
@@ -102,8 +105,8 @@ When the baseline includes `perf/workload.json`, it also enforces byte-for-byte 
 ## Source layout
 
 ```text
-skills/prof-tools/SKILL.md            One explicit agent entrypoint
-skills/prof-tools/references/        CPU/CUDA/ROCm, diagnosis, verification, search, hardware, specialist details
+skills/optimize/SKILL.md             One explicit agent entrypoint
+skills/optimize/references/          CPU/CUDA/ROCm, diagnosis, verification, search, hardware, specialist details
 agents-optional/                 Independent profiler, implementer, validator, architecture reviewer, coordinator
 src/prof_tools/                     Stateless analysis + small workflow composition
 examples/sequence-window-case/   Public real-world synthetic CPU optimization challenge
@@ -142,6 +145,6 @@ not an additional `prof-tools` CLI command.
 
 ## Opt-in and autonomous search boundary
 
-`prof-tools` and `labcoat` are explicit-only agent skills. In Claude Code, each uses `disable-model-invocation: true`; in Codex each provides an `agents/openai.yaml` policy with `allow_implicit_invocation: false`. A request to invoke `prof-tools` opts into Labcoat **for that campaign only**; other tasks do not. The agent loads Labcoat and uses its scripts automatically. The skill-scoped Labcoat hooks become active only after invoking the actual `/labcoat` skill in Claude Code; reading `SKILL.md` is not equivalent. The coordinator must run annotation checks and note validation at experiment boundaries when native skill invocation is unavailable.
+`/optimize` and `labcoat` are explicit-only agent skills. In Claude Code, each uses `disable-model-invocation: true`; in Codex each provides an `agents/openai.yaml` policy with `allow_implicit_invocation: false`. A request to invoke `/optimize` opts into Labcoat **for that campaign only**; other tasks do not. The agent loads Labcoat and uses its scripts automatically. The skill-scoped Labcoat hooks become active only after invoking the actual `/labcoat` skill in Claude Code; reading `SKILL.md` is not equivalent. The coordinator must run annotation checks and note validation at experiment boundaries when native skill invocation is unavailable.
 
-The coordinator uses an **AutoResearch-style iterative search policy** (falsify → evaluate → record → choose next, within a budget). There is no background daemon or automatic agent-spawning service. The invoking agent runtime is responsible for continuing the loop, dispatching workers, tracking the agreed resource budget, and stopping when progress plateaus or evidence is exhausted. Labcoat retains provenance; `prof-tools` retains evaluation and profiling semantics. A distinct `autoresearch` package is not necessary to run this workflow, but truly unattended, restartable orchestration would be a separate capability and is not claimed here.
+The coordinator uses an **AutoResearch-style iterative search policy** (falsify → evaluate → record → choose next, within a budget). `prof-tools campaign run` adds a foreground, resumable controller with a hard deadline, a shared evaluation cap, and one Codex worker at a time. It does not run unattended after the invoking process exits, select a winning candidate, or integrate/review the final patch. Labcoat retains provenance; `prof-tools` retains evaluation and profiling semantics.

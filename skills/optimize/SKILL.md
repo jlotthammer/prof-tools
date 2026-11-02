@@ -1,12 +1,12 @@
 ---
-name: prof-tools
-description: Explicit, evidence-driven CPU/CUDA/ROCm optimization: diagnose the complete computation, explore distinct hypotheses with Labcoat, verify and benchmark representative workloads, then consolidate and independently review the final design.
+name: optimize
+description: Explicit, budgeted optimization workflow: use Prof Tools and Labcoat to explore evidence-based hypotheses, verify representative workloads, then consolidate and independently review the final design.
 disable-model-invocation: true
 ---
 
-# ML performance engineering
+# Optimize performance with evidence
 
-Run only when explicitly requested. **Invoking `prof-tools` explicitly opts into Labcoat for this campaign**; the user does not need to invoke `/labcoat` or approve Labcoat a second time. Do not load Labcoat merely because ordinary debugging or benchmarking is happening outside the `prof-tools` workflow. `prof-tools` measures and validates; **Labcoat** owns experiment notes, lineage, decisions, preregistration and concurrent worker ownership. The user’s original source Git repository must not receive experiment branches, notes, intermediate commits or preparation changes. Work in an independent preparation clone and an isolated campaign repository; only the consolidated final patch belongs in source.
+Run only when explicitly requested. **Invoking `/optimize` opts into Labcoat for this campaign**; the user does not need to invoke `/labcoat` or approve Labcoat a second time. Do not load Labcoat merely because ordinary debugging or benchmarking is happening outside this workflow. `prof-tools` measures and validates; **Labcoat** owns experiment notes, lineage, decisions and preregistration. The user’s original source Git repository must not receive experiment branches, notes, intermediate commits or preparation changes. Work in an independent preparation clone and an isolated campaign repository; only the consolidated final patch belongs in source.
 
 ## Agent workflow
 
@@ -17,6 +17,20 @@ Run only when explicitly requested. **Invoking `prof-tools` explicitly opts into
 5. **Evaluate each candidate with one command.** From the project checkout run `prof-tools evaluate --outdir <unique-artifact-dir>` (defaults to the agent-authored, committed `perf/workload.json`; use `--spec` only for an existing alternative contract). This runs independent correctness checks before unprofiled paired measurements across the weighted distribution, verifies timed output identities, checks per-case regressions and memory limits, and writes `evaluation.json`. It may return `BLOCKED`; record failure evidence in Labcoat. A kernel microbenchmark alone is never an acceptance test.
 6. **Consolidate.** In a clean integration worktree from the **prepared base**, reconstruct the winning ideas into one coherent design. Do not stack exploratory branches or preserve redundant APIs, flags, dispatch paths, abstractions or performance scaffolding. Retain a small conceptual diff, not necessarily the fewest lines. Require an independent architecture reviewer with fresh context.
 7. **Revalidate the exact final commit and finalize inside the isolated campaign repository.** Re-run `prof-tools evaluate` from the committed final checkout using the **original frozen workload contract**, then `prof-tools finalize --repo . --base <sha> --evaluation <evaluation.json> --design-review <review.json> --out final.json`. Independent reviewer checks ten semantic dimensions, every changed file, public API before/after and a credible simpler alternative. `finalize` checks evidence and source revisions, but does not decide KEEP/REVERT; Labcoat does. After approval, deliver only the clean consolidated patch to the original source. Preserve the separate campaign Git database while Labcoat notes reference its commits; never push experimental refs upstream.
+
+## Bounded run entrypoint
+
+Invoke this workflow as `/optimize` (or `$optimize` in Codex). The CLI remains `prof-tools`.
+
+After preparing the campaign as described above, start a bounded run with:
+
+```bash
+prof-tools campaign run --campaign /path/to/campaign.json \
+  --objective "Improve representative end-to-end throughput while preserving semantics" \
+  --time-budget-minutes 120 --max-evaluations 8 --reserve-minutes 15
+```
+
+This runs one foreground Codex worker at a time and reserves the final evaluation for integration. Resume a paused run with `prof-tools campaign run --campaign /path/to/campaign.json --resume`. The runner does not integrate or independently review the final change; use the reserved time for those steps.
 
 ## Zero-configuration user entrypoint
 

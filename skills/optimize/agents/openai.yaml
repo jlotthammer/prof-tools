@@ -1,0 +1,6 @@
+interface:
+  display_name: Optimize
+  short_description: Bounded optimization campaigns with correctness and performance verification
+  default_prompt: Use Prof Tools and Labcoat to optimize this repository within an explicit time and evaluation budget; preserve correctness and deliver a clean final diff.
+policy:
+  allow_implicit_invocation: false

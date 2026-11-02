@@ -6,6 +6,7 @@ import sys
 
 from .auto_diagnosis import auto_diagnose, finding
 from .campaign import start_campaign
+from .orchestration import reserve_evaluation, run_campaign
 from .cpu import cpu_inventory, cprofile_summary, collapsed_stacks_summary
 from .environment import inventory
 from .hardware import DEVICES, ridge, gemm_ai, wave_efficiency
@@ -103,9 +104,20 @@ def _parser():
     start.add_argument("--labcoat-repo", help="existing or new independent Labcoat repository (default: sibling <project>-labcoat)")
     start.add_argument("--out", help="single branch-brief artifact outside the repository")
 
+    run = csub.add_parser("run", help="run or resume a bounded, single-worker optimization campaign")
+    run.add_argument("--campaign", required=True, help="campaign.json produced by campaign start")
+    run.add_argument("--objective", help="optimization objective (required for a new run)")
+    run.add_argument("--time-budget-minutes", type=float, help="total foreground campaign budget")
+    run.add_argument("--max-evaluations", type=int, help="candidate evaluations plus one reserved final evaluation")
+    run.add_argument("--reserve-minutes", type=float, default=15, help="time kept for integration and final validation")
+    run.add_argument("--resume", action="store_true", help="continue the existing campaign state")
+    run.add_argument("--dry-run", action="store_true", help="show campaign limits without starting Codex")
+
     e = sub.add_parser("evaluate", help="verify correctness, run weighted unprofiled benchmarks and assess")
     e.add_argument("--spec", default="perf/workload.json", help="project-owned workload contract (default: perf/workload.json)")
     e.add_argument("--outdir", required=True)
+    e.add_argument("--phase", choices=["candidate", "final"], default="candidate",
+                   help="campaign budget pool to consume (default: candidate)")
 
     f = sub.add_parser("finalize", help="validate exact final commit and independent semantic architecture review")
     f.add_argument("--repo", required=True)
@@ -135,21 +147,29 @@ def main(argv=None):
         if args.command == "diagnose":
             result = _diagnose(args)
         elif args.command == "campaign":
-            if args.out:
-                output = Path(args.out).resolve()
-                repo = Path(args.repo).resolve()
-                worktrees = Path(args.worktrees).resolve()
-                if output == repo or repo in output.parents or output == worktrees or worktrees in output.parents:
-                    raise ValueError("campaign report must be outside both the source repository and worktree directory")
-                if output.exists():
-                    raise FileExistsError(f"campaign output already exists: {output}")
-                output.parent.mkdir(parents=True, exist_ok=True)
-            result = start_campaign(args.opportunities, args.repo, args.base, args.worktrees, args.labcoat_repo)
-            if args.out:
-                Path(args.out).write_text(json.dumps(result, indent=2))
+            if args.campaign_command == "run":
+                result = run_campaign(args.campaign, objective=args.objective,
+                                      time_budget_minutes=args.time_budget_minutes,
+                                      max_evaluations=args.max_evaluations,
+                                      reserve_minutes=args.reserve_minutes,
+                                      resume=args.resume, dry_run=args.dry_run)
+            else:
+                if args.out:
+                    output = Path(args.out).resolve()
+                    repo = Path(args.repo).resolve()
+                    worktrees = Path(args.worktrees).resolve()
+                    if output == repo or repo in output.parents or output == worktrees or worktrees in output.parents:
+                        raise ValueError("campaign report must be outside both the source repository and worktree directory")
+                    if output.exists():
+                        raise FileExistsError(f"campaign output already exists: {output}")
+                    output.parent.mkdir(parents=True, exist_ok=True)
+                result = start_campaign(args.opportunities, args.repo, args.base, args.worktrees, args.labcoat_repo)
+                if args.out:
+                    Path(args.out).write_text(json.dumps(result, indent=2))
         elif args.command == "evaluate":
             if not Path(args.spec).is_file():
                 raise ValueError(f"workload contract not found: {args.spec}; the invoking agent must author and commit the project benchmark/verification contract first")
+            reserve_evaluation(args.phase)
             result = evaluate(args.spec, args.outdir)
         elif args.command == "finalize":
             result = finalize(args.repo, args.base, args.evaluation, args.design_review)

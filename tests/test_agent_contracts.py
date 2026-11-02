@@ -31,8 +31,8 @@ class AgentContractsTests(unittest.TestCase):
 
     def test_single_skill_assigns_contract_authoring_to_agent(self):
         root = Path(__file__).resolve().parents[1]
-        skill = (root / "skills/prof-tools/SKILL.md").read_text()
-        guide = (root / "skills/prof-tools/references/contract-authoring.md").read_text()
+        skill = (root / "skills/optimize/SKILL.md").read_text()
+        guide = (root / "skills/optimize/references/contract-authoring.md").read_text()
         self.assertIn("not JSON files", skill)
         self.assertIn("perf/workload.json", skill)
         self.assertIn("trusted oracle", guide)

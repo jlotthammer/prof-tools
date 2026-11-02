@@ -3,7 +3,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SKILL = ROOT / "skills/prof-tools"
+SKILL = ROOT / "skills/optimize"
 
 
 def main():

@@ -5,6 +5,10 @@ import sys
 import tempfile
 import unittest
 from prof_tools.campaign import start_campaign
+from prof_tools.orchestration import _campaign_lock, reserve_evaluation, run_campaign
+from unittest.mock import patch
+import os
+import time
 
 
 def git(directory, *args):
@@ -122,6 +126,83 @@ class CampaignTests(unittest.TestCase):
             self.assertNotIn("prof-tools/", git(original, "branch", "--list"))
             self.assertFalse((original / "perf").exists())
             self.assertEqual(git(original, "status", "--porcelain"), "")
+
+    def make_campaign(self, root):
+        repo = self.make_repo(root)
+        base = git(repo, "rev-parse", "HEAD")
+        spec = root / "opportunities.json"
+        spec.write_text(json.dumps(opportunities()))
+        campaign = start_campaign(str(spec), str(repo), base, str(root / "campaign"))
+        campaign_file = root / "campaign.json"
+        campaign_file.write_text(json.dumps(campaign))
+        return campaign, campaign_file
+
+    def test_campaign_run_dry_run_is_non_mutating_and_reserves_final_slot(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            campaign, campaign_file = self.make_campaign(root)
+            result = run_campaign(str(campaign_file), objective="improve throughput",
+                                  time_budget_minutes=30, max_evaluations=4,
+                                  reserve_minutes=5, dry_run=True)
+            state_path = Path(result["state_file"])
+            self.assertFalse(state_path.exists())
+            self.assertEqual(result["limits"]["max_candidate_evaluations"], 3)
+            self.assertEqual(result["limits"]["reserved_final_evaluations"], 1)
+            self.assertEqual(result["limits"]["max_workers"], 1)
+
+    def test_campaign_runner_rejects_concurrent_owner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _, campaign_file = self.make_campaign(root)
+            with _campaign_lock(str(campaign_file)):
+                with self.assertRaisesRegex(ValueError, "another campaign runner"):
+                    run_campaign(str(campaign_file), objective="objective",
+                                 time_budget_minutes=30, max_evaluations=2,
+                                 reserve_minutes=5)
+
+    def test_campaign_run_executes_prepared_branches_sequentially_and_persists_sessions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            campaign, campaign_file = self.make_campaign(root)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            codex = fake_bin / "codex"
+            codex.write_text("#!/bin/sh\nprintf '{\\\"type\\\":\\\"thread.started\\\",\\\"thread_id\\\":\\\"fake-session\\\"}\\n'\n")
+            codex.chmod(0o755)
+            with patch.dict(os.environ, {"PATH": f"{fake_bin}:{os.environ['PATH']}"}):
+                result = run_campaign(str(campaign_file), objective="improve throughput",
+                                      time_budget_minutes=5, max_evaluations=4,
+                                      reserve_minutes=1)
+            self.assertEqual(result["status"], "ready_for_final_review")
+            self.assertEqual(result["completed_branches"], [x["id"] for x in campaign["branches"]])
+            state = json.loads(Path(result["state_file"]).read_text())
+            self.assertTrue(all(x["status"] == "complete" for x in state["branches"]))
+            self.assertTrue(all(x["session_id"] == "fake-session" for x in state["branches"]))
+
+    def test_evaluation_reservations_enforce_shared_candidate_cap_and_final_phase(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            state_path = root / "campaign-run.json"
+            state_path.write_text(json.dumps({
+                "candidate_deadline_epoch": time.time() + 120,
+                "deadline_epoch": time.time() + 180,
+                "status": "running",
+                "limits": {"max_candidate_evaluations": 2}}))
+            with patch.dict(os.environ, {"PROF_TOOLS_CAMPAIGN_STATE": str(state_path)}):
+                reserve_evaluation("candidate")
+                reserve_evaluation("candidate")
+                with self.assertRaisesRegex(ValueError, "candidate evaluation budget is exhausted"):
+                    reserve_evaluation("candidate")
+                with self.assertRaisesRegex(ValueError, "only after candidate exploration"):
+                    reserve_evaluation("final")
+                state = json.loads(state_path.read_text())
+                state["status"] = "ready_for_final_review"
+                state_path.write_text(json.dumps(state))
+                with self.assertRaisesRegex(ValueError, "only during candidate exploration"):
+                    reserve_evaluation("candidate")
+                reserve_evaluation("final")
+                with self.assertRaisesRegex(ValueError, "final evaluation budget is exhausted"):
+                    reserve_evaluation("final")
 
     def test_public_campaign_cli_and_output_location(self):
         with tempfile.TemporaryDirectory() as tmp:
