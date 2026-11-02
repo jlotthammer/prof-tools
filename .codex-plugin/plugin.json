@@ -1,0 +1,30 @@
+{
+  "name": "prof-tools",
+  "version": "1.2.1",
+  "description": "Evidence-driven CPU, CUDA and ROCm optimization with correctness verification and Labcoat experiment tracking.",
+  "author": {
+    "name": "Jeff Lotthammer"
+  },
+  "keywords": [
+    "performance",
+    "profiling",
+    "benchmarking",
+    "cuda",
+    "rocm",
+    "optimization"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Prof Tools",
+    "shortDescription": "Evidence-driven performance optimization",
+    "longDescription": "Diagnose bottlenecks, test optimization hypotheses with representative benchmarks, verify correctness, and review the final design.",
+    "developerName": "Jeff Lotthammer",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Instructions"
+    ],
+    "defaultPrompt": [
+      "Use Prof Tools to optimize this repository and verify correctness."
+    ]
+  }
+}

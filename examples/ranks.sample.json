@@ -1,0 +1,23 @@
+{
+  "step_marker": "train_step",
+  "ranks": [
+    {
+      "rank": 0,
+      "trace": "rank0.sqlite",
+      "clock_domain": "REPLACE_WITH_VERIFIED_COMMON_CLOCK_DOMAIN",
+      "clock_offset_ns": 0,
+      "alignment_error_ns": 0
+    },
+    {
+      "rank": 1,
+      "trace": "rank1.sqlite",
+      "clock_domain": "REPLACE_WITH_VERIFIED_COMMON_CLOCK_DOMAIN",
+      "clock_offset_ns": 0,
+      "alignment_error_ns": 0
+    }
+  ],
+  "collectives": [
+    {"rank": 0, "sequence_id": "step_0/all_reduce_0", "kind": "all_reduce", "start_ns": 0, "end_ns": 1000},
+    {"rank": 1, "sequence_id": "step_0/all_reduce_0", "kind": "all_reduce", "start_ns": 100, "end_ns": 1100}
+  ]
+}

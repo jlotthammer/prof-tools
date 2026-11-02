@@ -1,0 +1,6 @@
+interface:
+  display_name: Prof Tools
+  short_description: Explicit CPU, NVIDIA and AMD optimization campaigns with verification
+  default_prompt: Optimize this repository with prof-tools and Labcoat; preserve correctness and deliver a clean final diff.
+policy:
+  allow_implicit_invocation: false

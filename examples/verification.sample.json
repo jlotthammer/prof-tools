@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "workload": {"kind": "sum_weighted", "n": 6},
+  "required_categories": ["forward", "invariant"],
+  "cases": [
+    {
+      "id": "exact_output", "type": "compare", "category": "forward", "atol": 0, "rtol": 0,
+      "reference": ["python", "examples/verify_demo.py", "--implementation", "baseline", "--out", "{output}"],
+      "candidate": ["python", "examples/verify_demo.py", "--implementation", "candidate", "--out", "{output}"]
+    },
+    {
+      "id": "independent_invariant", "type": "test", "category": "invariant",
+      "command": ["python", "-c", "assert sum((i * i * (i+1))//2 for i in range(6)) == 140"]
+    }
+  ]
+}

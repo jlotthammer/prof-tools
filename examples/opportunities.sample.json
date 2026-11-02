@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "objective": {"metric_scope": "application", "direction": "lower", "metric": "step_ms", "memory": {"mode": "secondary"}},
+  "workloads": [
+    {"id": "batch8_seq128", "weight": 0.7, "baseline_ms": 100},
+    {"id": "batch8_seq512", "weight": 0.3, "baseline_ms": 200}
+  ],
+  "family_screening": {
+    "algebra": {"status": "considered", "reason": "An intermediate may be redundant"},
+    "dataflow": {"status": "considered", "reason": "Observed repeated materialization"},
+    "scheduling": {"status": "considered", "reason": "Host dispatch gaps need diagnosis"},
+    "memory": {"status": "ruled_out", "reason": "No observed capacity constraint or exposed transfer cost"},
+    "library": {"status": "considered", "reason": "Baseline dispatch may omit a vendor fused primitive"},
+    "kernel": {"status": "considered", "reason": "A recurring kernel may be exposed"},
+    "distributed": {"status": "ruled_out", "reason": "Measured workload is single-device"}
+  },
+  "candidates": [
+    {
+      "id": "remove_materialization", "family": "dataflow", "mechanism": "Eliminate an intermediate tensor",
+      "falsification_test": "Measure exposed tensor construction and dependent work separately",
+      "cost": "medium", "memory_effect": "reduction likely; not measured",
+      "per_workload": {"batch8_seq128": {"exposed_ms": 12, "speedup_ceiling": 2}, "batch8_seq512": {"exposed_ms": 20, "speedup_ceiling": 2}}
+    },
+    {
+      "id": "tile_kernel", "family": "kernel", "mechanism": "Increase operand reuse in an exposed GEMM",
+      "falsification_test": "Check NCU/ROCm counters and compare paired full-step timings",
+      "cost": "high", "memory_effect": "unknown",
+      "per_workload": {"batch8_seq128": {"exposed_ms": 3, "speedup_ceiling": 2}, "batch8_seq512": {"exposed_ms": 5, "speedup_ceiling": 2}}
+    }
+  ]
+}

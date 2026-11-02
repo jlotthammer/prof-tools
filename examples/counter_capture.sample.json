@@ -1,0 +1,16 @@
+{
+  "vendor": "nvidia",
+  "architecture": "sm_90a",
+  "profiler": "ncu",
+  "profiler_version": "REPLACE_WITH_INSTALLED_VERSION",
+  "command": "REPLACE_WITH_EXACT_NCU_COMMAND",
+  "replay_mode": "REPLACE_WITH_OBSERVED_REPLAY_MODE",
+  "workload_id": "REPLACE_WITH_IDENTICAL_WORKLOAD_ID",
+  "device_id": "REPLACE_WITH_GPU_UUID",
+  "conditions": {
+    "shapes": "REPLACE_WITH_ACTUAL_SHAPES",
+    "precision": "REPLACE_WITH_ACTUAL_PRECISION",
+    "clocks": "REPLACE_WITH_OBSERVED_POLICY",
+    "counter_collection": "REPLACE_WITH_COLLECTED_METRIC_SET"
+  }
+}

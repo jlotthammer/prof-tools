@@ -1,0 +1,8 @@
+{
+  "metric": "MetricName",
+  "value": "MetricValue",
+  "unit": "MetricUnit",
+  "kernel": "KernelName",
+  "dispatch": "DispatchID",
+  "device": "GPU"
+}

@@ -1,0 +1,11 @@
+{
+  "nodes": [
+    {"id": "kernel_A", "duration_ns": 500},
+    {"id": "kernel_B", "duration_ns": 350},
+    {"id": "collective_C", "duration_ns": 700}
+  ],
+  "edges": [
+    {"from": "kernel_A", "to": "kernel_B", "evidence": "REPLACE_WITH_VERIFIED_PRODUCER_CONSUMER_EDGE"},
+    {"from": "kernel_A", "to": "collective_C", "evidence": "REPLACE_WITH_VERIFIED_EVENT_OR_STREAM_EDGE"}
+  ]
+}

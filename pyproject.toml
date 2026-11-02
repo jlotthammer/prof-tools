@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prof-tools-toolkit"
+version = "1.2.1"
+description = "Reproducible CPU and CUDA/ROCm performance experimentation toolkit"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+prof-tools = "prof_tools.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

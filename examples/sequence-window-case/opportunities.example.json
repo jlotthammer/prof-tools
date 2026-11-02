@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "objective": {
+    "metric_scope": "application",
+    "direction": "lower",
+    "metric": "step_ms",
+    "memory": {
+      "mode": "secondary"
+    }
+  },
+  "workloads": [
+    {
+      "id": "boundary",
+      "weight": 0.1,
+      "baseline_ms": 4.68
+    },
+    {
+      "id": "short",
+      "weight": 0.25,
+      "baseline_ms": 4.5
+    },
+    {
+      "id": "medium",
+      "weight": 0.4,
+      "baseline_ms": 44.5
+    },
+    {
+      "id": "wide",
+      "weight": 0.25,
+      "baseline_ms": 213.5
+    }
+  ],
+  "family_screening": {
+    "algebra": {
+      "status": "considered",
+      "reason": "Can eliminate repeated neighborhood reductions"
+    },
+    "dataflow": {
+      "status": "considered",
+      "reason": "Reusable prefix representation may amortize neighborhood scans"
+    },
+    "scheduling": {
+      "status": "considered",
+      "reason": "May move batch orchestration but inner loop dominates"
+    },
+    "memory": {
+      "status": "considered",
+      "reason": "Extra temporary arrays may increase memory; secondary tradeoff"
+    },
+    "library": {
+      "status": "considered",
+      "reason": "Consider array/compiled primitives only if worth dependency cost"
+    },
+    "kernel": {
+      "status": "considered",
+      "reason": "Vectorized native path possible but profiling required"
+    },
+    "distributed": {
+      "status": "ruled_out",
+      "reason": "Single process CPU workload; no collectives"
+    }
+  },
+  "candidates": [
+    {
+      "id": "prefix_math",
+      "family": "algebra",
+      "mechanism": "Reduce redundant per-position window sums using algebraic reuse",
+      "falsification_test": "Count repeated reads and compare a prototype against full integer outputs",
+      "cost": "low"
+    },
+    {
+      "id": "streaming_layout",
+      "family": "dataflow",
+      "mechanism": "Reorganize per-sequence state to reduce Python indexing and allocations",
+      "falsification_test": "Measure total stage time and intermediate memory with same output contract",
+      "cost": "medium"
+    },
+    {
+      "id": "native_acceleration",
+      "family": "library",
+      "mechanism": "Use a proven array implementation if deployment and data conversion costs are acceptable",
+      "falsification_test": "Include conversion and allocation in application timing",
+      "cost": "high"
+    }
+  ]
+}

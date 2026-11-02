@@ -1,0 +1,78 @@
+{
+  "base_commit": "REPLACE_WITH_ACTUAL_BASE_SHA",
+  "final_commit": "REPLACE_WITH_ACTUAL_FINAL_SHA",
+  "reviewer": "REPLACE_WITH_INDEPENDENT_REVIEWER",
+  "summary": "EXAMPLE ONLY: explain whether the final integrated design is simpler than both the exploratory paths and plausible alternatives, and why retained complexity earns its cost.",
+  "public_api": {
+    "before": "EXAMPLE ONLY: enumerate relevant original entrypoints, parameters, contracts and actual call sites.",
+    "after": "EXAMPLE ONLY: enumerate final entrypoints, parameters and actual call sites.",
+    "compatibility": "EXAMPLE ONLY: explain any intended API behavior change or why the same contract is preserved."
+  },
+  "changed_files": [
+    {
+      "path": "src/example.py",
+      "purpose": "EXAMPLE ONLY: replace a previously redundant implementation with the single retained design.",
+      "necessity": "EXAMPLE ONLY: identify the measured behavior or correctness requirement this change satisfies."
+    }
+  ],
+  "simpler_alternatives": [
+    {
+      "option": "EXAMPLE ONLY: retain the original implementation without adding a new codepath.",
+      "tradeoff": "EXAMPLE ONLY: explain the complexity saved versus the measured performance loss.",
+      "evidence": "EXAMPLE ONLY: cite application-level results and applicable source locations.",
+      "disposition": "rejected"
+    }
+  ],
+  "checks": {
+    "semantic_preservation": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: identify the exact forward, gradient, error and state contract and independent tests used.",
+      "locations": ["src/example.py"]
+    },
+    "conceptual_economy": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: name every new dispatch or abstraction and explain why none can be eliminated.",
+      "locations": ["src/example.py"]
+    },
+    "coherent_public_api": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: compare exported interfaces and caller responsibilities before and after.",
+      "locations": ["src/example.py"]
+    },
+    "dataflow_and_ownership": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: trace inputs, mutation, allocations, synchronization and outputs.",
+      "locations": ["src/example.py"]
+    },
+    "optimization_necessity": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: map the retained optimization to unprofiled representative application gain.",
+      "locations": ["src/example.py"]
+    },
+    "simpler_alternatives": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: establish why the simpler compared implementation was not selected.",
+      "locations": ["src/example.py"]
+    },
+    "scope_discipline": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: show changed files and API changes are necessary for the retained behavior.",
+      "locations": ["src/example.py"]
+    },
+    "exploration_residue_removed": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: verify obsolete flags, variants, compatibility shims and debug hooks are gone.",
+      "locations": ["src/example.py"]
+    },
+    "maintainable_tests": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: name stable behavior-based tests and identify unresolved coverage gaps.",
+      "locations": ["src/example.py"]
+    },
+    "diff_accountability": {
+      "status": "PASS",
+      "evidence": "EXAMPLE ONLY: account for every file in git diff base..head and justify each change.",
+      "locations": ["src/example.py"]
+    }
+  }
+}
