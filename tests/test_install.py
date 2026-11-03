@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import tempfile
+import json
 from pathlib import Path
 import unittest
 
@@ -11,6 +12,9 @@ class InstallerTest(unittest.TestCase):
         pyproject = (repo / "pyproject.toml").read_text()
         scripts = pyproject.split("[project.scripts]", 1)[1].split("[", 1)[0]
         self.assertEqual(scripts.strip(), 'prof-tools = "prof_tools.cli:main"')
+        version = pyproject.split('version = "', 1)[1].split('"', 1)[0]
+        for manifest in (".claude-plugin/plugin.json", ".codex-plugin/plugin.json"):
+            self.assertEqual(json.loads((repo / manifest).read_text())["version"], version)
         self.assertTrue((repo / "src" / "prof_tools" / "cli.py").is_file())
         self.assertFalse((repo / "src" / "gpu_perf").exists())
 
