@@ -1,6 +1,6 @@
-# Prof Tools Toolkit 1.2.1
+# Prof Tools Toolkit 1.3.0
 
-One opt-in performance-engineering skill with Python/CPU, NVIDIA CUDA and AMD ROCm references. Invoking `prof-tools` explicitly authorizes Labcoat for that campaign; Labcoat is otherwise opt-in. One small CLI around stateless profilers, verification algorithms and experimental evidence. **Labcoat** owns experiment history, preregistration, lineage and KEEP/REVERT decisions.
+Two explicit skills: read-only source/profile analysis (`/analyze`) and budgeted optimization (`/optimize`), with Python/CPU, NVIDIA CUDA and AMD ROCm guidance. Invoking `prof-tools` explicitly authorizes Labcoat for that campaign; Labcoat is otherwise opt-in. One small CLI around stateless profilers, verification algorithms and experimental evidence. **Labcoat** owns experiment history, preregistration, lineage and KEEP/REVERT decisions.
 
 The toolkit is for agents tasked with making **representative full applications** faster while preserving semantics and leaving a small, coherent final implementation. It is not a standalone GPU profiler, a second experiment database, or a general stochastic optimizer.
 
@@ -12,9 +12,11 @@ python /path/to/prof_tools/tools/install_skills.py --project /path/to/target --c
 # or: --client claude [--with-agents]
 ```
 
-The installer copies the `/optimize` skill and its references; five specialist agent templates are optional. The distributed Python package exposes only the `prof-tools` command.
+The installer copies both `/analyze` and `/optimize` skills and their references; five specialist agent templates are optional. The distributed Python package exposes only the `prof-tools` command.
 
 ## Start from an ordinary request (no JSON to prepare)
+
+For recommendations without code changes, invoke `/analyze` and provide the repository plus any optional trace, benchmark summary, or CSV. For implementation and a verified optimization campaign, use `/optimize`.
 
 With the `/optimize` skill installed, ask your coding agent, for example:
 
@@ -105,7 +107,8 @@ When the baseline includes `perf/workload.json`, it also enforces byte-for-byte 
 ## Source layout
 
 ```text
-skills/optimize/SKILL.md             One explicit agent entrypoint
+skills/analyze/SKILL.md              Read-only source and profile analysis
+skills/optimize/SKILL.md             Budgeted optimization entrypoint
 skills/optimize/references/          CPU/CUDA/ROCm, diagnosis, verification, search, hardware, specialist details
 agents-optional/                 Independent profiler, implementer, validator, architecture reviewer, coordinator
 src/prof_tools/                     Stateless analysis + small workflow composition

@@ -11,7 +11,7 @@ def main():
              *sorted((SKILL / "references/hardware").glob("*.md")),
              *sorted((SKILL / "references/details").glob("*.md")),
              *sorted((ROOT / "agents-optional").glob("*.md"))]
-    parts = ["# Prof Tools Toolkit v1.2.1 — one skill, CPU/CUDA/ROCm references\n\n",
+    parts = ["# Prof Tools Toolkit v1.3.0 — analysis and optimization skills, CPU/CUDA/ROCm references\n\n",
              "The installable Markdown files are authoritative; this document is a concatenated review copy.\n\n"]
     for path in paths:
         parts.extend([f"\n---\n\n## `{path.relative_to(ROOT)}`\n\n", path.read_text(), "\n"])

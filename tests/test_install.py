@@ -26,7 +26,8 @@ class InstallerTest(unittest.TestCase):
             base = [sys.executable, str(tool), '--project', d, '--client', 'codex']
             subprocess.run(base, check=True, capture_output=True, text=True)
             actual = list((Path(d) / '.agents' / 'skills').glob('*/SKILL.md'))
-            self.assertEqual(len(actual), 1)
+            self.assertEqual(sorted(p.parent.name for p in actual), ["analyze", "optimize"])
+            self.assertTrue((Path(d) / '.agents' / 'skills' / 'analyze' / 'SKILL.md').is_file())
             self.assertTrue((Path(d) / '.agents' / 'skills' / 'optimize' / 'references' / 'cpu.md').is_file())
             self.assertTrue((Path(d) / '.agents' / 'skills' / 'optimize' / 'references' / 'hardware' / 'mi300a.md').is_file())
             collision = subprocess.run(base, capture_output=True, text=True)

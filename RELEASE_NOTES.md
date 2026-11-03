@@ -1,3 +1,9 @@
+# v1.3.0 — Read-only performance analysis skill
+
+- Add explicit `/analyze` for source-level performance recommendations with optional traces, benchmark summaries, or CSV evidence.
+- Keep recommendations separate from code changes and campaign execution; `/optimize` remains the implementation and verification workflow.
+- Installer and bundle validation now include both skills.
+
 # v1.2.1 — Explicit-only Labcoat activation and bounded research loop
 
 - `prof-tools` remains explicit-only, and its invocation explicitly opts in to Labcoat for that campaign. It does not require a second user confirmation.

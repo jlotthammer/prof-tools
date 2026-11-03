@@ -1,0 +1,6 @@
+interface:
+  display_name: Analyze Performance
+  short_description: Read-only source and profile analysis
+  default_prompt: Review this code and optional profiling data for likely performance improvements. Do not edit files or run an optimization campaign.
+policy:
+  allow_implicit_invocation: false
